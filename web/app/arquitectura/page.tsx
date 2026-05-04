@@ -143,7 +143,7 @@ export default function ArquitecturaPage() {
           <p className="text-txt-secondary text-sm mb-4">{t("arq_mt_desc")}</p>
 
           {/* Academias */}
-          <div className="grid grid-cols-3 gap-3 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
             {ACADEMIAS.map((ac) => (
               <div key={ac.name} className="bg-surface border border-app-border rounded-xl p-3 text-center">
                 <p className="font-bold text-txt-primary text-sm">{ac.name}</p>

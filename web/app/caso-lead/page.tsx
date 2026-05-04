@@ -116,7 +116,7 @@ export default function CasoLeadPage() {
       </AnimateIn>
 
       {/* Selector de academia */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         {Object.entries(academias).map(([id, ac]) => (
           <button
             key={id}
@@ -138,7 +138,7 @@ export default function CasoLeadPage() {
 
       {/* Info de academia activa */}
       {ac && (
-        <div className="bg-surface border border-app-border rounded-xl px-4 py-2.5 mb-4 text-xs flex gap-5">
+        <div className="bg-surface border border-app-border rounded-xl px-4 py-2.5 mb-4 text-xs flex flex-wrap gap-3 sm:gap-5">
           <span className="flex items-center gap-1.5 text-txt-muted">
             <ClockIcon className="w-3.5 h-3.5" />
             <span className="text-txt-primary">{ac.horarios}</span>

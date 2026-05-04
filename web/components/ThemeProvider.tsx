@@ -22,6 +22,7 @@ const translations: Record<string, Record<Lang, string>> = {
   arquitectura: { es: "Arquitectura", en: "Architecture" },
   portafolio: { es: "Portafolio", en: "Portfolio" },
   automatizacion: { es: "Automatizacion", en: "Automation" },
+  demo: { es: "Demo", en: "Demo" },
 
   // Home
   hero_title_1: { es: "Agentes de IA para", en: "AI Agents for" },
@@ -48,6 +49,8 @@ const translations: Record<string, Record<Lang, string>> = {
   "mod_04_desc": { es: "9+ proyectos entre empresariales, propios y consultoria en IA y desarrollo.", en: "9+ projects across enterprise, personal and consulting in AI and development." },
   "mod_03_title": { es: "Automatizacion (Make/Zapier)", en: "Automation (Make/Zapier)" },
   "mod_03_desc": { es: "Conceptos sobre plataformas de automatizacion no-code aplicadas al flujo de Presto.", en: "Concepts about no-code automation platforms applied to the Presto flow." },
+  "mod_07_title": { es: "Demo Rapida — Codigo", en: "Quick Demo — Code" },
+  "mod_07_desc": { es: "Snippets clave del backend: agente ReAct, herramientas, multi-tenant y endpoints.", en: "Key backend snippets: ReAct agent, tools, multi-tenant and endpoints." },
 
   // Page headers
   "p01_title": { es: "API Basica — Chat con LLM", en: "Basic API — Chat with LLM" },
@@ -64,6 +67,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "p03_desc": { es: "Plataformas de automatizacion visual (no-code/low-code).", en: "Visual automation platforms (no-code/low-code)." },
 
   // Chat
+  llamadas: { es: "Llamadas", en: "Calls" },
   enviar: { es: "Enviar", en: "Send" },
   pensando: { es: "Pensando...", en: "Thinking..." },
   metricas: { es: "Metricas", en: "Metrics" },
@@ -88,6 +92,16 @@ const translations: Record<string, Record<Lang, string>> = {
   empresarial: { es: "Empresarial", en: "Enterprise" },
   proyecto_propio: { es: "Proyecto Propio", en: "Own Project" },
   investigacion: { es: "Investigacion & Consultoria", en: "Research & Consulting" },
+
+  // Backend status
+  backend_online: { es: "Backend conectado — python run.py", en: "Backend connected — python run.py" },
+  backend_offline: { es: "Backend desconectado — ejecuta: python run.py", en: "Backend offline — run: python run.py" },
+  backend_checking: { es: "Verificando backend...", en: "Checking backend..." },
+
+  // Demo
+  demo_title: { es: "Demo Rapida — Codigo del Agente", en: "Quick Demo — Agent Code" },
+  demo_desc: { es: "Snippets clave del backend: como funciona el agente, las herramientas y el multi-tenant.", en: "Key backend snippets: how the agent, tools and multi-tenant work." },
+  demo_como_funciona: { es: "Como funciona", en: "How it works" },
 };
 
 const ThemeContext = createContext<ThemeContextType | null>(null);

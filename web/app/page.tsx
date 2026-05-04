@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import AnimateIn from "@/components/AnimateIn";
@@ -11,8 +12,13 @@ import {
   CubeTransparentIcon,
   BriefcaseIcon,
   BoltIcon,
+  CodeBracketIcon,
   ArrowRightIcon,
+  SignalIcon,
+  SignalSlashIcon,
 } from "@heroicons/react/24/outline";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const MODULOS = [
   { id: "01", href: "/api-basica", titleKey: "mod_01_title", descKey: "mod_01_desc", tags: ["REST API", "Groq", "Tokens"], icon: CommandLineIcon, gradient: "from-blue-500 to-cyan-400" },
@@ -21,6 +27,7 @@ const MODULOS = [
   { id: "06", href: "/arquitectura", titleKey: "mod_06_title", descKey: "mod_06_desc", tags: ["Diagramas", "Stack"], icon: CubeTransparentIcon, gradient: "from-orange-500 to-amber-400" },
   { id: "04", href: "/portafolio", titleKey: "mod_04_title", descKey: "mod_04_desc", tags: ["Sudial AI", "Kumbre", "SaaS"], icon: BriefcaseIcon, gradient: "from-cyan-500 to-blue-400" },
   { id: "03", href: "/automatizacion", titleKey: "mod_03_title", descKey: "mod_03_desc", tags: ["Make", "Zapier", "No-code"], icon: BoltIcon, gradient: "from-yellow-500 to-orange-400" },
+  { id: "07", href: "/demo", titleKey: "mod_07_title", descKey: "mod_07_desc", tags: ["Python", "LangGraph", "Snippets"], icon: CodeBracketIcon, gradient: "from-pink-500 to-rose-400" },
 ];
 
 const STACK = [
@@ -34,6 +41,18 @@ const STACK = [
 
 export default function Home() {
   const { t } = useTheme();
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const check = () => {
+      fetch(`${API}/api/health`, { signal: AbortSignal.timeout(3000) })
+        .then(r => r.ok ? setBackendOnline(true) : setBackendOnline(false))
+        .catch(() => setBackendOnline(false));
+    };
+    check();
+    const interval = setInterval(check, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-16">
@@ -72,6 +91,41 @@ export default function Home() {
           ))}
         </motion.div>
       </div>
+
+      {/* Backend status */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="flex justify-center mb-8"
+      >
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs border ${
+          backendOnline === null
+            ? "border-app-border text-txt-muted"
+            : backendOnline
+              ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/5"
+              : "border-red-500/30 text-red-400 bg-red-500/5"
+        }`}>
+          {backendOnline === null ? (
+            <>
+              <div className="w-2 h-2 rounded-full bg-txt-muted animate-pulse" />
+              {t("backend_checking")}
+            </>
+          ) : backendOnline ? (
+            <>
+              <SignalIcon className="w-3.5 h-3.5" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              {t("backend_online")}
+            </>
+          ) : (
+            <>
+              <SignalSlashIcon className="w-3.5 h-3.5" />
+              <span className="w-2 h-2 rounded-full bg-red-400" />
+              {t("backend_offline")}
+            </>
+          )}
+        </div>
+      </motion.div>
 
       {/* Grid de modulos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

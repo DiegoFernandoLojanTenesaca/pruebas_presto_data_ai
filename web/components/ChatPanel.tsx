@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PaperAirplaneIcon, ChatBubbleLeftRightIcon, SparklesIcon } from "@heroicons/react/24/solid";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   meta?: Record<string, unknown>;
+  isError?: boolean;
+  isTyping?: boolean;
 }
 
 interface ChatPanelProps {
@@ -15,6 +18,44 @@ interface ChatPanelProps {
   suggestions?: string[];
   onSend: (mensaje: string) => Promise<{ respuesta: string; meta?: Record<string, unknown> }>;
   renderMeta?: (meta: Record<string, unknown>) => React.ReactNode;
+}
+
+// Typewriter hook
+function useTypewriter(text: string, speed = 12, enabled = false) {
+  const [displayed, setDisplayed] = useState(enabled ? "" : text);
+  const [done, setDone] = useState(!enabled);
+
+  useEffect(() => {
+    if (!enabled) { setDisplayed(text); setDone(true); return; }
+    setDisplayed("");
+    setDone(false);
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) { clearInterval(interval); setDone(true); }
+    }, speed);
+    return () => clearInterval(interval);
+  }, [text, speed, enabled]);
+
+  return { displayed, done };
+}
+
+// Sound notification
+function playNotificationSound() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 800;
+    osc.type = "sine";
+    gain.gain.value = 0.08;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.15);
+  } catch {}
 }
 
 export default function ChatPanel({ placeholder = "Escribe un mensaje...", suggestions, onSend, renderMeta }: ChatPanelProps) {
@@ -35,19 +76,32 @@ export default function ChatPanel({ placeholder = "Escribe un mensaje...", sugge
 
     try {
       const result = await onSend(msg);
+      playNotificationSound();
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: result.respuesta, meta: result.meta },
+        { role: "assistant", content: result.respuesta, meta: result.meta, isTyping: true },
       ]);
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Error desconocido";
-      setMessages((prev) => [...prev, { role: "assistant", content: `Error: ${errorMsg}` }]);
+      let errorMsg: string;
+      if (err instanceof TypeError && (err.message.includes("fetch") || err.message.includes("network") || err.message.includes("Failed"))) {
+        errorMsg = "No se pudo conectar con el backend. Asegurate de ejecutar: python run.py";
+      } else {
+        errorMsg = err instanceof Error ? err.message : "Error desconocido";
+      }
+      setMessages((prev) => [...prev, { role: "assistant", content: errorMsg, isError: true }]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSend = () => sendMessage(input.trim());
+
+  // Typewriter text component for assistant messages
+  const TypewriterText = useCallback(({ text, onDone }: { text: string; onDone: () => void }) => {
+    const { displayed, done } = useTypewriter(text, 10, true);
+    useEffect(() => { if (done) onDone(); }, [done, onDone]);
+    return <pre className="whitespace-pre-wrap font-sans">{displayed}<span className={done ? "hidden" : "animate-pulse"}>▌</span></pre>;
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -87,16 +141,29 @@ export default function ChatPanel({ placeholder = "Escribe un mensaje...", sugge
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div className="max-w-[80%]">
-                <div
-                  className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-gradient-to-br from-accent to-accent/80 text-white"
-                      : "bg-surface-light border border-app-border text-gray-200"
-                  }`}
-                >
-                  <pre className="whitespace-pre-wrap font-sans">{msg.content}</pre>
-                </div>
-                {msg.meta && renderMeta && (
+                {msg.isError ? (
+                  <div className="rounded-2xl px-4 py-3 text-sm leading-relaxed bg-red-500/10 border border-red-500/30 text-red-400 flex items-start gap-2">
+                    <ExclamationTriangleIcon className="w-5 h-5 shrink-0 mt-0.5" />
+                    <pre className="whitespace-pre-wrap font-sans">{msg.content}</pre>
+                  </div>
+                ) : (
+                  <div
+                    className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                      msg.role === "user"
+                        ? "bg-gradient-to-br from-accent to-accent/80 text-white"
+                        : "bg-surface-light border border-app-border text-txt-secondary"
+                    }`}
+                  >
+                    {msg.role === "assistant" && msg.isTyping ? (
+                      <TypewriterText text={msg.content} onDone={() => {
+                        setMessages(prev => prev.map((m, idx) => idx === i ? { ...m, isTyping: false } : m));
+                      }} />
+                    ) : (
+                      <pre className="whitespace-pre-wrap font-sans">{msg.content}</pre>
+                    )}
+                  </div>
+                )}
+                {msg.meta && renderMeta && !msg.isTyping && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -110,8 +177,8 @@ export default function ChatPanel({ placeholder = "Escribe un mensaje...", sugge
             </motion.div>
           ))}
         </AnimatePresence>
-        {/* Sugerencias después de respuesta */}
-        {!loading && messages.length > 0 && messages[messages.length - 1].role === "assistant" && suggestions && suggestions.length > 0 && (
+        {/* Sugerencias después de respuesta (espera a que termine typewriter) */}
+        {!loading && messages.length > 0 && messages[messages.length - 1].role === "assistant" && !messages[messages.length - 1].isTyping && !messages[messages.length - 1].isError && suggestions && suggestions.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}

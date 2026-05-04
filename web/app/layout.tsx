@@ -13,6 +13,7 @@ import {
   CubeTransparentIcon,
   BriefcaseIcon,
   BoltIcon,
+  CodeBracketIcon,
   SunIcon,
   MoonIcon,
   LanguageIcon,
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { href: "/arquitectura", labelKey: "arquitectura", icon: CubeTransparentIcon },
   { href: "/portafolio", labelKey: "portafolio", icon: BriefcaseIcon },
   { href: "/automatizacion", labelKey: "automatizacion", icon: BoltIcon },
+  { href: "/demo", labelKey: "demo", icon: CodeBracketIcon },
 ];
 
 function Navbar() {
@@ -104,7 +106,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={`${inter.variable} ${mono.variable} h-full`} data-theme="dark">
       <head>
         <title>Presto AI — Pruebas Tecnicas</title>
-        <meta name="description" content="Agentes de IA para Academias de Musica — Diego Fernando Lojan" />
+        <meta name="description" content="Agentes de IA para Academias de Musica — Diego Fernando Lojan Tenesaca" />
+        <meta property="og:title" content="Presto AI — Agentes de IA para Academias de Musica" />
+        <meta property="og:description" content="Sistema inteligente de captacion de alumnos con LangChain, LangGraph y Groq. Multi-tenant, CRM, WhatsApp." />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="es_EC" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Presto AI — Pruebas Tecnicas" />
+        <meta name="twitter:description" content="Agentes de IA para Academias de Musica — Diego Fernando Lojan Tenesaca" />
+        <meta name="author" content="Diego Fernando Lojan Tenesaca" />
+        <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="min-h-full bg-background text-foreground">
         <ThemeProvider>

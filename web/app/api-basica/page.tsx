@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef } from "react";
 import ChatPanel from "@/components/ChatPanel";
 import MetaCard from "@/components/MetaCard";
 import AnimateIn from "@/components/AnimateIn";
@@ -10,6 +11,9 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function ApiBasicaPage() {
   const { t } = useTheme();
+  const [totalTokens, setTotalTokens] = useState({ prompt: 0, completion: 0, total: 0 });
+  const [callCount, setCallCount] = useState(0);
+  const totalRef = useRef({ prompt: 0, completion: 0, total: 0 });
 
   const handleSend = async (mensaje: string) => {
     const res = await fetch(`${API}/api/01-api-basica`, {
@@ -18,13 +22,25 @@ export default function ApiBasicaPage() {
       body: JSON.stringify({ mensaje }),
     });
     const data = await res.json();
+
+    // Acumular tokens
+    const p = data.tokens?.prompt || 0;
+    const c = data.tokens?.completion || 0;
+    totalRef.current = {
+      prompt: totalRef.current.prompt + p,
+      completion: totalRef.current.completion + c,
+      total: totalRef.current.total + p + c,
+    };
+    setTotalTokens({ ...totalRef.current });
+    setCallCount(prev => prev + 1);
+
     return {
       respuesta: data.respuesta || data.error,
       meta: {
         modelo: data.modelo,
-        tokens_prompt: data.tokens?.prompt,
-        tokens_completion: data.tokens?.completion,
-        tokens_total: data.tokens?.total,
+        tokens_prompt: p,
+        tokens_completion: c,
+        tokens_total: p + c,
         tiempo: `${data.tiempo_segundos}s`,
         metodo: data.metodo,
         provider: data.provider,
@@ -52,6 +68,19 @@ export default function ApiBasicaPage() {
           </div>
         </div>
       </AnimateIn>
+
+      {/* Token counter */}
+      {callCount > 0 && (
+        <div className="mb-3 flex gap-3 text-[11px] px-1">
+          <span className="px-2.5 py-1 bg-surface border border-app-border rounded-lg text-txt-muted">
+            {t("llamadas")}: <span className="text-accent-light font-bold">{callCount}</span>
+          </span>
+          <span className="px-2.5 py-1 bg-surface border border-app-border rounded-lg text-txt-muted">
+            Tokens totales: <span className="text-txt-primary font-bold">{totalTokens.total.toLocaleString()}</span>
+            <span className="text-txt-muted ml-1">({totalTokens.prompt} prompt + {totalTokens.completion} completion)</span>
+          </span>
+        </div>
+      )}
 
       <div className="flex-1 bg-surface rounded-2xl border border-app-border overflow-hidden">
         <ChatPanel
