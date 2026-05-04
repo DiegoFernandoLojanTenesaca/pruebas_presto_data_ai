@@ -155,6 +155,14 @@ export default function CasoLeadPage() {
         <ChatPanel
           key={chatKey}
           placeholder={`Escribe como lead de ${ac?.nombre || "la academia"}...`}
+          suggestions={[
+            "Hola! Vi su anuncio en Instagram, que cursos ofrecen?",
+            "Me interesa piano, tienen horarios en la tarde?",
+            "Cuanto cuesta inscribirse? Hay descuentos?",
+            "Puedo agendar una clase de prueba gratis?",
+            "Tienen clases grupales o solo individuales?",
+            "Quiero hablar con alguien del equipo",
+          ]}
           onSend={handleSend}
           renderMeta={renderMeta}
         />

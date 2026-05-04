@@ -56,6 +56,13 @@ export default function ApiBasicaPage() {
       <div className="flex-1 bg-surface rounded-2xl border border-app-border overflow-hidden">
         <ChatPanel
           placeholder="Escribe cualquier pregunta... (ej: Que es un agente de IA?)"
+          suggestions={[
+            "Que es un agente de IA?",
+            "Diferencia entre LangChain y LangGraph",
+            "Como funciona RAG?",
+            "Que es Groq y por que es rapido?",
+            "Explicame el patron ReAct",
+          ]}
           onSend={handleSend}
           renderMeta={(meta) => <MetaCard data={meta} title={t("metricas_llamada")} />}
         />

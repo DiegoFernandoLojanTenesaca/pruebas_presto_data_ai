@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PaperAirplaneIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
+import { PaperAirplaneIcon, ChatBubbleLeftRightIcon, SparklesIcon } from "@heroicons/react/24/solid";
 
 interface Message {
   role: "user" | "assistant";
@@ -12,11 +12,12 @@ interface Message {
 
 interface ChatPanelProps {
   placeholder?: string;
+  suggestions?: string[];
   onSend: (mensaje: string) => Promise<{ respuesta: string; meta?: Record<string, unknown> }>;
   renderMeta?: (meta: Record<string, unknown>) => React.ReactNode;
 }
 
-export default function ChatPanel({ placeholder = "Escribe un mensaje...", onSend, renderMeta }: ChatPanelProps) {
+export default function ChatPanel({ placeholder = "Escribe un mensaje...", suggestions, onSend, renderMeta }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,10 +27,8 @@ export default function ChatPanel({ placeholder = "Escribe un mensaje...", onSen
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = async () => {
-    const msg = input.trim();
+  const sendMessage = async (msg: string) => {
     if (!msg || loading) return;
-
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: msg }]);
     setLoading(true);
@@ -48,14 +47,34 @@ export default function ChatPanel({ placeholder = "Escribe un mensaje...", onSen
     }
   };
 
+  const handleSend = () => sendMessage(input.trim());
+
   return (
     <div className="flex flex-col h-full">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
-          <div className="text-center text-txt-muted mt-20">
+          <div className="text-center text-txt-muted mt-16">
             <ChatBubbleLeftRightIcon className="w-10 h-10 mx-auto mb-3 text-accent/40" />
-            <p className="text-sm">{placeholder}</p>
+            <p className="text-sm mb-4">{placeholder}</p>
+            {suggestions && suggestions.length > 0 && (
+              <div className="flex flex-wrap gap-2 justify-center max-w-lg mx-auto">
+                {suggestions.map((s, i) => (
+                  <motion.button
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + i * 0.05 }}
+                    onClick={() => sendMessage(s)}
+                    disabled={loading}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-surface-light border border-app-border rounded-xl text-xs text-txt-secondary hover:border-accent/50 hover:text-accent-light transition-all disabled:opacity-50"
+                  >
+                    <SparklesIcon className="w-3 h-3 text-accent/60 shrink-0" />
+                    {s}
+                  </motion.button>
+                ))}
+              </div>
+            )}
           </div>
         )}
         <AnimatePresence>
@@ -91,6 +110,26 @@ export default function ChatPanel({ placeholder = "Escribe un mensaje...", onSen
             </motion.div>
           ))}
         </AnimatePresence>
+        {/* Sugerencias después de respuesta */}
+        {!loading && messages.length > 0 && messages[messages.length - 1].role === "assistant" && suggestions && suggestions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-wrap gap-1.5 pl-2"
+          >
+            {suggestions.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => sendMessage(s)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface-light border border-app-border rounded-lg text-[11px] text-txt-secondary hover:border-accent/50 hover:text-accent-light transition-all"
+              >
+                <SparklesIcon className="w-2.5 h-2.5 text-accent/50 shrink-0" />
+                {s}
+              </button>
+            ))}
+          </motion.div>
+        )}
         {loading && (
           <motion.div
             initial={{ opacity: 0 }}

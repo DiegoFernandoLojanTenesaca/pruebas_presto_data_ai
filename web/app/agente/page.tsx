@@ -135,6 +135,13 @@ export default function AgentePage() {
       <div className="flex-1 bg-surface rounded-2xl border border-app-border overflow-hidden">
         <ChatPanel
           placeholder="Ej: Hola! Me interesa aprender guitarra, que opciones tienen?"
+          suggestions={[
+            "Quiero aprender guitarra, que opciones tienen?",
+            "Cuales son los horarios disponibles?",
+            "Quiero agendar una clase de prueba para el sabado",
+            "Cuanto cuesta la mensualidad?",
+            "Tienen clases para niños de 8 años?",
+          ]}
           onSend={handleSend}
           renderMeta={renderMeta}
         />
