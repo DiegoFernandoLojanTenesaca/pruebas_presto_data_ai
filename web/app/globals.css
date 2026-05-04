@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+/* ===== DARK THEME (default) ===== */
+:root {
+  --background: #0a0a0f;
+  --foreground: #e8e8ed;
+  --surface: #12121a;
+  --surface-light: #1a1a25;
+  --border: #1e1e2e;
+  --border-light: #2a2a3e;
+  --accent: #6c5ce7;
+  --accent-light: #a29bfe;
+  --accent-glow: rgba(108, 92, 231, 0.15);
+  --success: #00cec9;
+  --success-glow: rgba(0, 206, 201, 0.15);
+  --warning: #fdcb6e;
+  --danger: #ff7675;
+  --glass-bg: rgba(18, 18, 26, 0.8);
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --text-muted: #6b6b80;
+}
+
+/* ===== LIGHT THEME ===== */
+[data-theme="light"] {
+  --background: #f5f5fa;
+  --foreground: #1a1a2e;
+  --surface: #ffffff;
+  --surface-light: #ecedf3;
+  --border: #d5d7e2;
+  --border-light: #c0c3d0;
+  --accent: #4a3cc9;
+  --accent-light: #5b4cdb;
+  --accent-glow: rgba(74, 60, 201, 0.12);
+  --success: #008580;
+  --success-glow: rgba(0, 133, 128, 0.1);
+  --warning: #c49000;
+  --danger: #d03030;
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --text-primary: #111128;
+  --text-secondary: #3a3a5c;
+  --text-muted: #6a6a88;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-light: var(--surface-light);
+  --color-app-border: var(--border);
+  --color-border-light: var(--border-light);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-glow: var(--accent-glow);
+  --color-success: var(--success);
+  --color-success-glow: var(--success-glow);
+  --color-txt-primary: var(--text-primary);
+  --color-txt-secondary: var(--text-secondary);
+  --color-txt-muted: var(--text-muted);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+::selection {
+  background: rgba(108, 92, 231, 0.3);
+  color: #fff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Glow effects */
+.glow-accent {
+  box-shadow: 0 0 20px rgba(108, 92, 231, 0.2), 0 0 60px rgba(108, 92, 231, 0.05);
+}
+.glow-success {
+  box-shadow: 0 0 20px rgba(0, 206, 201, 0.2), 0 0 60px rgba(0, 206, 201, 0.05);
+}
+
+/* Glass effect */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Gradient text that actually works */
+.gradient-text {
+  background: linear-gradient(135deg, #6c5ce7, #00cec9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="light"] .gradient-text {
+  background: linear-gradient(135deg, #5b4cdb, #00a8a3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient border */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent), var(--success));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
+/* Dot grid background */
+.bg-dots {
+  background-image: radial-gradient(rgba(108, 92, 231, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+[data-theme="light"] .bg-dots {
+  background-image: radial-gradient(rgba(91, 76, 219, 0.08) 1px, transparent 1px);
+}
+
+/* Light theme color overrides for semantic elements */
+[data-theme="light"] .text-blue-300 { color: #1e40af; }
+[data-theme="light"] .text-blue-200 { color: #1e40af; }
+[data-theme="light"] .text-blue-400 { color: #2563eb; }
+[data-theme="light"] .text-purple-300 { color: #6d28d9; }
+[data-theme="light"] .text-purple-400 { color: #7c3aed; }
+[data-theme="light"] .text-emerald-300 { color: #047857; }
+[data-theme="light"] .text-emerald-400 { color: #059669; }
+[data-theme="light"] .text-emerald-500 { color: #047857; }
+[data-theme="light"] .text-yellow-200 { color: #92400e; }
+[data-theme="light"] .text-yellow-300 { color: #a16207; }
+[data-theme="light"] .text-yellow-400 { color: #ca8a04; }
+[data-theme="light"] .text-red-300 { color: #b91c1c; }
+[data-theme="light"] .text-red-400 { color: #dc2626; }
+[data-theme="light"] .text-red-500 { color: #b91c1c; }
+[data-theme="light"] .text-orange-400 { color: #c2410c; }
+[data-theme="light"] .text-gray-300 { color: #374151; }
+[data-theme="light"] .text-gray-400 { color: #4b5563; }
+
+/* Light theme backgrounds for colored panels */
+[data-theme="light"] .bg-emerald-950\/50,
+[data-theme="light"] .bg-emerald-900\/50,
+[data-theme="light"] .bg-purple-950\/40,
+[data-theme="light"] .bg-purple-950\/50,
+[data-theme="light"] .bg-blue-950\/40 {
+  background-color: rgba(240, 245, 255, 0.8);
+}
+[data-theme="light"] .border-emerald-700\/50 { border-color: rgba(5, 150, 105, 0.3); }
+[data-theme="light"] .bg-blue-500\/10 { background-color: rgba(37, 99, 235, 0.08); }
+[data-theme="light"] .bg-purple-500\/10 { background-color: rgba(124, 58, 237, 0.08); }
+[data-theme="light"] .bg-emerald-500\/5 { background-color: rgba(5, 150, 105, 0.06); }
+[data-theme="light"] .bg-yellow-500\/10 { background-color: rgba(202, 138, 4, 0.08); }
+[data-theme="light"] .bg-red-500\/5 { background-color: rgba(220, 38, 38, 0.05); }
+
+/* Light theme borders */
+[data-theme="light"] .border-blue-500\/20 { border-color: rgba(37, 99, 235, 0.2); }
+[data-theme="light"] .border-purple-500\/50,
+[data-theme="light"] .border-purple-800\/40 { border-color: rgba(124, 58, 237, 0.2); }
+[data-theme="light"] .border-emerald-800\/50,
+[data-theme="light"] .border-emerald-500\/20 { border-color: rgba(5, 150, 105, 0.2); }
+[data-theme="light"] .border-blue-800\/40 { border-color: rgba(37, 99, 235, 0.15); }
+[data-theme="light"] .border-yellow-500\/20 { border-color: rgba(202, 138, 4, 0.2); }
+[data-theme="light"] .border-red-500\/20 { border-color: rgba(220, 38, 38, 0.15); }
+
+/* Transitions for theme switching */
+.theme-transition * {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease !important;
+}
