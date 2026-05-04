@@ -304,6 +304,11 @@ def caso_lead(req: LeadRequest):
 # INFO GENERAL
 # ============================================================
 
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.get("/api/info")
 def info():
     return {
