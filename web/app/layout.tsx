@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ThemeProvider, useTheme } from "@/components/ThemeProvider";
 import {
   HomeIcon,
@@ -35,7 +36,25 @@ const NAV_ITEMS = [
 
 function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, lang, toggleTheme, toggleLang, t } = useTheme();
+
+  // Keyboard shortcuts: 1-8 para navegar, D para tema, L para idioma
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const idx = parseInt(e.key) - 1;
+      if (idx >= 0 && idx < NAV_ITEMS.length) {
+        e.preventDefault();
+        router.push(NAV_ITEMS[idx].href);
+      }
+      if (e.key === "d" || e.key === "D") toggleTheme();
+      if (e.key === "l" || e.key === "L") toggleLang();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [router, toggleTheme, toggleLang]);
 
   return (
     <nav className="glass border-b border-app-border sticky top-0 z-50">
@@ -52,7 +71,7 @@ function Navbar() {
 
         {/* Nav links */}
         <div className="flex gap-0.5 text-xs ml-2 overflow-x-auto">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.map((item, i) => {
             const active = pathname === item.href;
             return (
               <Link
@@ -63,9 +82,11 @@ function Navbar() {
                     ? "bg-accent/15 text-accent-light font-medium"
                     : "text-txt-muted hover:text-txt-primary hover:bg-surface-light"
                 }`}
+                title={`${t(item.labelKey)} (${i + 1})`}
               >
                 <item.icon className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">{t(item.labelKey)}</span>
+                <kbd className="hidden lg:inline text-[9px] text-txt-muted/50 ml-0.5 border border-app-border rounded px-1">{i + 1}</kbd>
               </Link>
             );
           })}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import AnimateIn from "@/components/AnimateIn";
@@ -20,14 +20,30 @@ import {
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+function AnimatedNumber({ target, duration = 1.5 }: { target: number; duration?: number }) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    let start = 0;
+    const step = (ts: number) => {
+      if (!start) start = ts;
+      const progress = Math.min((ts - start) / (duration * 1000), 1);
+      setValue(Math.floor(progress * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration]);
+  return <span ref={ref}>{value}</span>;
+}
+
 const MODULOS = [
-  { id: "01", href: "/api-basica", titleKey: "mod_01_title", descKey: "mod_01_desc", tags: ["REST API", "Groq", "Tokens"], icon: CommandLineIcon, gradient: "from-blue-500 to-cyan-400" },
-  { id: "02", href: "/agente", titleKey: "mod_02_title", descKey: "mod_02_desc", tags: ["LangChain", "LangGraph", "Tool Use"], icon: CpuChipIcon, gradient: "from-emerald-500 to-teal-400" },
-  { id: "05", href: "/caso-lead", titleKey: "mod_05_title", descKey: "mod_05_desc", tags: ["Multi-tenant", "CRM", "WhatsApp"], icon: UserGroupIcon, gradient: "from-purple-500 to-violet-400" },
-  { id: "06", href: "/arquitectura", titleKey: "mod_06_title", descKey: "mod_06_desc", tags: ["Diagramas", "Stack"], icon: CubeTransparentIcon, gradient: "from-orange-500 to-amber-400" },
-  { id: "04", href: "/portafolio", titleKey: "mod_04_title", descKey: "mod_04_desc", tags: ["Sudial AI", "Kumbre", "SaaS"], icon: BriefcaseIcon, gradient: "from-cyan-500 to-blue-400" },
-  { id: "03", href: "/automatizacion", titleKey: "mod_03_title", descKey: "mod_03_desc", tags: ["Make", "Zapier", "No-code"], icon: BoltIcon, gradient: "from-yellow-500 to-orange-400" },
-  { id: "07", href: "/demo", titleKey: "mod_07_title", descKey: "mod_07_desc", tags: ["Python", "LangGraph", "Snippets"], icon: CodeBracketIcon, gradient: "from-pink-500 to-rose-400" },
+  { id: "01", href: "/api-basica", titleKey: "mod_01_title", descKey: "mod_01_desc", tags: ["REST API", "Groq", "Tokens"], icon: CommandLineIcon, gradient: "from-blue-500 to-cyan-400", live: true },
+  { id: "02", href: "/agente", titleKey: "mod_02_title", descKey: "mod_02_desc", tags: ["LangChain", "LangGraph", "Tool Use"], icon: CpuChipIcon, gradient: "from-emerald-500 to-teal-400", live: true },
+  { id: "05", href: "/caso-lead", titleKey: "mod_05_title", descKey: "mod_05_desc", tags: ["Multi-tenant", "CRM", "WhatsApp"], icon: UserGroupIcon, gradient: "from-purple-500 to-violet-400", live: true },
+  { id: "06", href: "/arquitectura", titleKey: "mod_06_title", descKey: "mod_06_desc", tags: ["Diagramas", "Stack"], icon: CubeTransparentIcon, gradient: "from-orange-500 to-amber-400", live: false },
+  { id: "04", href: "/portafolio", titleKey: "mod_04_title", descKey: "mod_04_desc", tags: ["Sudial AI", "Kumbre", "SaaS"], icon: BriefcaseIcon, gradient: "from-cyan-500 to-blue-400", live: false },
+  { id: "03", href: "/automatizacion", titleKey: "mod_03_title", descKey: "mod_03_desc", tags: ["Make", "Zapier", "No-code"], icon: BoltIcon, gradient: "from-yellow-500 to-orange-400", live: false },
+  { id: "07", href: "/demo", titleKey: "mod_07_title", descKey: "mod_07_desc", tags: ["Python", "LangGraph", "Snippets"], icon: CodeBracketIcon, gradient: "from-pink-500 to-rose-400", live: false },
 ];
 
 const STACK = [
@@ -42,12 +58,19 @@ const STACK = [
 export default function Home() {
   const { t } = useTheme();
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
+  const [latency, setLatency] = useState<number | null>(null);
 
   useEffect(() => {
     const check = () => {
+      const start = performance.now();
       fetch(`${API}/api/health`, { signal: AbortSignal.timeout(3000) })
-        .then(r => r.ok ? setBackendOnline(true) : setBackendOnline(false))
-        .catch(() => setBackendOnline(false));
+        .then(r => {
+          if (r.ok) {
+            setLatency(Math.round(performance.now() - start));
+            setBackendOnline(true);
+          } else setBackendOnline(false);
+        })
+        .catch(() => { setBackendOnline(false); setLatency(null); });
     };
     check();
     const interval = setInterval(check, 15000);
@@ -90,6 +113,7 @@ export default function Home() {
             </span>
           ))}
         </motion.div>
+
       </div>
 
       {/* Backend status */}
@@ -116,6 +140,7 @@ export default function Home() {
               <SignalIcon className="w-3.5 h-3.5" />
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               {t("backend_online")}
+              {latency !== null && <span className="text-emerald-500/70 ml-1">{latency}ms</span>}
             </>
           ) : (
             <>
@@ -139,8 +164,16 @@ export default function Home() {
                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mod.gradient} flex items-center justify-center`}>
                   <mod.icon className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <span className="text-[10px] text-txt-muted font-mono">{mod.id}</span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-txt-muted font-mono">{mod.id}</span>
+                    {mod.live && (
+                      <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Live
+                      </span>
+                    )}
+                  </div>
                   <h2 className="text-base font-bold text-txt-primary group-hover:text-accent-light transition-colors">
                     {t(mod.titleKey)}
                   </h2>

@@ -35,6 +35,10 @@ const translations: Record<string, Record<Lang, string>> = {
     es: "Diego Fernando Lojan Tenesaca. Preparado para Presto.",
     en: "Diego Fernando Lojan Tenesaca. Prepared for Presto.",
   },
+  stat_modulos: { es: "Modulos", en: "Modules" },
+  stat_academias: { es: "Academias", en: "Academies" },
+  stat_herramientas: { es: "Herramientas IA", en: "AI Tools" },
+  stat_proyectos: { es: "Proyectos", en: "Projects" },
 
   // Modules
   "mod_01_title": { es: "API Basica", en: "Basic API" },

@@ -16,7 +16,7 @@ import {
 const SNIPPETS = [
   {
     id: "tools",
-    titleKey: "Herramientas del Agente",
+    titleKey: "Herramientas",
     descKey: "Funciones que el agente puede invocar autonomamente",
     icon: WrenchScrewdriverIcon,
     gradient: "from-emerald-500 to-teal-400",
@@ -41,7 +41,7 @@ def registrar_lead_crm(nombre: str, telefono: str, interes: str) -> str:
   },
   {
     id: "agent",
-    titleKey: "Agente ReAct (LangGraph)",
+    titleKey: "Agente ReAct",
     descKey: "Creacion del agente con patron ReAct que decide que herramientas usar",
     icon: CpuChipIcon,
     gradient: "from-blue-500 to-cyan-400",
@@ -67,7 +67,7 @@ resultado = agente.invoke({"messages": [HumanMessage(content="Quiero aprender gu
   },
   {
     id: "multitenant",
-    titleKey: "Multi-Tenant: Agente por Academia",
+    titleKey: "Multi-Tenant",
     descKey: "Cada academia tiene su propio agente con datos aislados",
     icon: ServerStackIcon,
     gradient: "from-purple-500 to-violet-400",
@@ -172,18 +172,17 @@ export default function DemoPage() {
         </div>
       </AnimateIn>
 
+      {/* Tabs horizontal */}
       <AnimateIn delay={0.1}>
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Tabs */}
-        <div className="md:w-60 shrink-0 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible">
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
           {SNIPPETS.map((s) => (
             <button
               key={s.id}
               onClick={() => setActive(s.id)}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-left text-sm whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm whitespace-nowrap transition-all shrink-0 ${
                 active === s.id
-                  ? "bg-accent/15 text-accent-light border border-accent/30"
-                  : "bg-surface border border-app-border text-txt-muted hover:border-border-light"
+                  ? "bg-accent/15 text-accent-light border border-accent/30 shadow-sm"
+                  : "bg-surface border border-app-border text-txt-muted hover:border-border-light hover:text-txt-secondary"
               }`}
             >
               <s.icon className="w-4 h-4 shrink-0" />
@@ -191,48 +190,50 @@ export default function DemoPage() {
             </button>
           ))}
         </div>
+      </AnimateIn>
 
-        {/* Code panel */}
-        <div className="flex-1 min-w-0">
-            <div className="bg-surface border border-app-border rounded-2xl overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-app-border bg-surface-light">
-                <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${snippet.gradient} flex items-center justify-center`}>
-                    <snippet.icon className="w-3.5 h-3.5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-txt-primary font-semibold text-sm">{snippet.titleKey}</p>
-                    <p className="text-txt-muted text-[11px]">{snippet.descKey}</p>
-                  </div>
-                </div>
-                <CopyButton text={snippet.code} />
+      {/* Code panel */}
+      <AnimateIn delay={0.15}>
+        <div className="bg-surface border border-app-border rounded-2xl overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-app-border bg-surface-light">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${snippet.gradient} flex items-center justify-center shrink-0`}>
+                <snippet.icon className="w-4 h-4 text-white" />
               </div>
-
-              {/* Code */}
-              <div className="p-4 overflow-x-auto">
-                <pre className="text-xs leading-relaxed font-mono text-txt-secondary">
-                  <code>{snippet.code}</code>
-                </pre>
-              </div>
-
-              {/* How it works */}
-              <div className="px-4 py-3 border-t border-app-border bg-surface-light">
-                <p className="text-[11px] text-txt-muted font-semibold mb-1.5">{t("demo_como_funciona")}:</p>
-                {snippet.id === "tools" && (
-                  <p className="text-[11px] text-txt-secondary">Cada funcion decorada con <code className="text-accent-light">@tool</code> expone su docstring como descripcion para el LLM. El agente lee las descripciones y decide cual ejecutar segun el mensaje del usuario.</p>
-                )}
-                {snippet.id === "agent" && (
-                  <p className="text-[11px] text-txt-secondary">El patron <code className="text-accent-light">ReAct</code> alterna entre razonar (Reason) y actuar (Act). LangGraph orquesta el ciclo: el LLM decide si necesita una herramienta, la ejecuta, observa el resultado, y decide si responder o seguir actuando.</p>
-                )}
-                {snippet.id === "multitenant" && (
-                  <p className="text-[11px] text-txt-secondary">Cada academia tiene su propio agente con herramientas que acceden a <strong>sus</strong> datos. El tenant se identifica por <code className="text-accent-light">academia_id</code> en el request. Los agentes se cachean en memoria para no recrearlos.</p>
-                )}
-                {snippet.id === "endpoint" && (
-                  <p className="text-[11px] text-txt-secondary">FastAPI recibe el mensaje + <code className="text-accent-light">academia_id</code>, selecciona el agente correcto del cache, ejecuta la conversacion y devuelve respuesta + metadata (herramientas usadas, acciones del sistema, tiempo).</p>
-                )}
+              <div className="min-w-0">
+                <p className="text-txt-primary font-bold text-sm">{snippet.titleKey}</p>
+                <p className="text-txt-muted text-[11px] truncate">{snippet.descKey}</p>
               </div>
             </div>
+            <CopyButton text={snippet.code} />
+          </div>
+
+          {/* Code */}
+          <div className="p-5 overflow-x-auto bg-[var(--background)]">
+            <pre className="text-[13px] leading-relaxed font-mono text-txt-secondary">
+              <code>{snippet.code}</code>
+            </pre>
+          </div>
+
+          {/* How it works */}
+          <div className="px-5 py-3.5 border-t border-app-border bg-surface-light">
+            <p className="text-xs text-accent-light font-semibold mb-1.5 flex items-center gap-1.5">
+              <BoltIcon className="w-3.5 h-3.5" />
+              {t("demo_como_funciona")}
+            </p>
+            {snippet.id === "tools" && (
+              <p className="text-xs text-txt-secondary leading-relaxed">Cada funcion decorada con <code className="text-accent-light bg-accent/10 px-1 rounded">@tool</code> expone su docstring como descripcion para el LLM. El agente lee las descripciones y decide cual ejecutar segun el mensaje del usuario.</p>
+            )}
+            {snippet.id === "agent" && (
+              <p className="text-xs text-txt-secondary leading-relaxed">El patron <code className="text-accent-light bg-accent/10 px-1 rounded">ReAct</code> alterna entre razonar (Reason) y actuar (Act). LangGraph orquesta el ciclo: el LLM decide si necesita una herramienta, la ejecuta, observa el resultado, y decide si responder o seguir actuando.</p>
+            )}
+            {snippet.id === "multitenant" && (
+              <p className="text-xs text-txt-secondary leading-relaxed">Cada academia tiene su propio agente con herramientas que acceden a <strong className="text-txt-primary">sus</strong> datos. El tenant se identifica por <code className="text-accent-light bg-accent/10 px-1 rounded">academia_id</code> en el request. Los agentes se cachean en memoria para no recrearlos.</p>
+            )}
+            {snippet.id === "endpoint" && (
+              <p className="text-xs text-txt-secondary leading-relaxed">FastAPI recibe el mensaje + <code className="text-accent-light bg-accent/10 px-1 rounded">academia_id</code>, selecciona el agente correcto del cache, ejecuta la conversacion y devuelve respuesta + metadata (herramientas usadas, acciones del sistema, tiempo).</p>
+            )}
           </div>
         </div>
       </AnimateIn>
