@@ -5,7 +5,6 @@ Cada endpoint expone un modulo de IA como API REST.
 import os
 import sys
 import time
-import json
 import warnings
 import requests as http_requests
 from fastapi import FastAPI
@@ -21,7 +20,10 @@ from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage
 from langgraph.prebuilt import create_react_agent
 
-app = FastAPI(title="Presto Pruebas API", version="1.0.0")
+from api.metricas_store import metricas
+from api.academias import ACADEMIAS, crear_agente_academia, agentes_cache
+
+app = FastAPI(title="Presto Pruebas API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +31,33 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ============================================================
+# REGISTRO DE ROUTERS DE FEATURES NUEVAS
+# ============================================================
+
+from api.webhook_ghl import router as webhook_router
+from api.scoring import router as scoring_router
+from api.rag import router as rag_router
+from api.clasificacion import router as clasificacion_router
+from api.metricas_endpoint import router as metricas_router
+from api.streaming import router as streaming_router
+from api.transcripcion import router as transcripcion_router
+from api.ab_test import router as ab_test_router
+from api.memoria import router as memoria_router
+from api.anti_abandono import router as anti_abandono_router
+
+app.include_router(webhook_router)
+app.include_router(scoring_router)
+app.include_router(rag_router)
+app.include_router(clasificacion_router)
+app.include_router(metricas_router)
+app.include_router(streaming_router)
+app.include_router(transcripcion_router)
+app.include_router(ab_test_router)
+app.include_router(memoria_router)
+app.include_router(anti_abandono_router)
 
 
 # ============================================================
@@ -71,6 +100,8 @@ def api_basica(req: ChatRequest):
 
     response = http_requests.post(GROQ_URL, headers=headers, json=payload)
     duracion = round(time.time() - inicio, 2)
+    metricas.registrar_tiempo("01_api_basica", duracion)
+    metricas.registrar_evento("chat_basico", {"tokens": response.json().get("usage", {}).get("total_tokens", 0) if response.status_code == 200 else 0})
 
     if response.status_code != 200:
         return {"error": response.text, "status": response.status_code}
@@ -93,7 +124,7 @@ def api_basica(req: ChatRequest):
 
 
 # ============================================================
-# 02 - AGENTE SIMPLE
+# 02 - AGENTE SIMPLE (single-tenant, demo de tool use)
 # ============================================================
 
 AGENTE_INFO_BASE = {
@@ -107,6 +138,7 @@ AGENTE_INFO_BASE = {
 @tool
 def buscar_info_academia(consulta: str) -> str:
     """Busca informacion de la academia: horarios, precios, clases, profesores."""
+    metricas.registrar_tool("buscar_info_academia")
     for nombre, info in AGENTE_INFO_BASE.items():
         if nombre.lower() in consulta.lower():
             return f"{nombre}: ${info['precio']}/mes, Prof. {info['profesor']}, Dias: {info['dias']}. Clase de prueba GRATIS."
@@ -115,11 +147,13 @@ def buscar_info_academia(consulta: str) -> str:
 @tool
 def agendar_clase_prueba(nombre: str, instrumento: str, dia: str) -> str:
     """Agenda una clase de prueba gratuita para un lead."""
+    metricas.registrar_tool("agendar_clase_prueba")
     return f"[CRM] Lead registrado: {nombre} | [Calendar] Clase de {instrumento} agendada: {dia} | [WhatsApp] Confirmacion enviada"
 
 @tool
 def registrar_lead_crm(nombre: str, telefono: str, interes: str) -> str:
     """Registra un nuevo lead en el sistema CRM (GoHighLevel)."""
+    metricas.registrar_tool("registrar_lead_crm")
     return f"[CRM GoHighLevel] Lead: {nombre} | Tel: {telefono} | Interes: {interes} | Estado: nuevo"
 
 llm_agente = ChatGroq(model=MODELO_AGENTE, temperature=0.4)
@@ -139,6 +173,8 @@ def agente_endpoint(req: AgentRequest):
     inicio = time.time()
     resultado = agente_simple.invoke({"messages": [HumanMessage(content=req.mensaje)]})
     duracion = round(time.time() - inicio, 2)
+    metricas.registrar_tiempo("02_agente", duracion)
+    metricas.registrar_evento("agente_invocado", {"academia": "armonia"})
 
     herramientas_usadas = []
     for msg in resultado["messages"]:
@@ -168,82 +204,6 @@ def agente_endpoint(req: AgentRequest):
 # 05 - CASO LEAD MULTI-TENANT
 # ============================================================
 
-ACADEMIAS = {
-    "armonia": {
-        "nombre": "Academia de Musica Armonia",
-        "ciudad": "Cuenca",
-        "horarios": "Lunes a Viernes 9am-7pm, Sabados 9am-1pm",
-        "clases": {
-            "Piano": {"precio": 60, "profesor": "Maria Lopez", "dias": "Lun, Mie, Vie"},
-            "Guitarra": {"precio": 50, "profesor": "Carlos Ruiz", "dias": "Mar, Jue, Sab"},
-            "Violin": {"precio": 70, "profesor": "Ana Torres", "dias": "Lun, Mie, Vie"},
-            "Canto": {"precio": 45, "profesor": "Laura Mendez", "dias": "Mar, Jue"},
-        },
-        "ubicacion": "Av. Principal 123, Cuenca",
-    },
-    "melodia": {
-        "nombre": "Escuela Melodia Musical",
-        "ciudad": "Guayaquil",
-        "horarios": "Lunes a Sabado 10am-8pm",
-        "clases": {
-            "Piano": {"precio": 55, "profesor": "Pedro Sanchez", "dias": "Lun a Vie"},
-            "Bateria": {"precio": 65, "profesor": "Miguel Ortiz", "dias": "Mar, Jue, Sab"},
-            "Canto": {"precio": 40, "profesor": "Sofia Reyes", "dias": "Lun, Mie, Vie"},
-        },
-        "ubicacion": "Calle 5 de Junio 456, Guayaquil",
-    },
-    "ritmo": {
-        "nombre": "Centro Musical Ritmo Latino",
-        "ciudad": "Quito",
-        "horarios": "Lunes a Viernes 8am-6pm",
-        "clases": {
-            "Guitarra": {"precio": 45, "profesor": "Andres Villalba", "dias": "Lun, Mie, Vie"},
-            "Saxofon": {"precio": 80, "profesor": "Roberto Diaz", "dias": "Mar, Jue"},
-            "Piano": {"precio": 65, "profesor": "Carmen Flores", "dias": "Lun a Sab"},
-        },
-        "ubicacion": "Av. Amazonas 789, Quito",
-    },
-}
-
-def crear_agente_academia(academia_id: str):
-    ac = ACADEMIAS[academia_id]
-
-    @tool
-    def consultar_clases(instrumento: str) -> str:
-        """Consulta clases disponibles. Usa 'todas' para ver todo el catalogo."""
-        if instrumento.lower() != "todas":
-            for nombre, info in ac["clases"].items():
-                if instrumento.lower() in nombre.lower():
-                    return f"{nombre}: ${info['precio']}/mes, Prof. {info['profesor']}, Dias: {info['dias']}. Clase de prueba GRATIS."
-            return f"No ofrecemos {instrumento} en {ac['nombre']}."
-        resultado = f"Clases en {ac['nombre']}:\n"
-        for nombre, info in ac["clases"].items():
-            resultado += f"- {nombre}: ${info['precio']}/mes, Prof. {info['profesor']} ({info['dias']})\n"
-        return resultado + "Clase de prueba GRATIS."
-
-    @tool
-    def agendar_prueba(nombre_alumno: str, instrumento: str, dia: str, telefono: str) -> str:
-        """Agenda clase de prueba gratuita."""
-        for nc, info in ac["clases"].items():
-            if instrumento.lower() in nc.lower():
-                return f"[CRM] Lead: {nombre_alumno} | Tel: {telefono} | [Calendar] {nc} con {info['profesor']} el {dia} | [WhatsApp] Confirmacion enviada | Ubicacion: {ac['ubicacion']}"
-        return f"No encontre {instrumento} en {ac['nombre']}."
-
-    @tool
-    def escalar_humano(motivo: str) -> str:
-        """Escala a un asesor humano."""
-        return f"[ESCALAMIENTO] Academia: {ac['nombre']} | Motivo: {motivo} | Notificacion enviada al equipo Presto"
-
-    llm = ChatGroq(model=MODELO_AGENTE, temperature=0.4)
-    return create_react_agent(
-        llm,
-        [consultar_clases, agendar_prueba, escalar_humano],
-        prompt=f"Eres asistente de {ac['nombre']} en {ac['ciudad']}. Responde en español, calido y profesional. Usa herramientas para info real. Ofrece clase de prueba GRATIS.",
-    )
-
-# Cache de agentes por academia
-agentes_cache = {}
-
 @app.get("/api/05-academias")
 def listar_academias():
     return {
@@ -271,6 +231,8 @@ def caso_lead(req: LeadRequest):
     agente = agentes_cache[req.academia_id]
     resultado = agente.invoke({"messages": [HumanMessage(content=req.mensaje)]})
     duracion = round(time.time() - inicio, 2)
+    metricas.registrar_tiempo("05_caso_lead", duracion)
+    metricas.registrar_evento("agente_invocado", {"academia": req.academia_id})
 
     herramientas = []
     acciones_sistema = []
@@ -331,6 +293,17 @@ def info():
             {"id": "05", "nombre": "Caso Lead", "descripcion": "Multi-tenant: 3 academias, flujo completo"},
             {"id": "06", "nombre": "Arquitectura", "descripcion": "Diagramas del sistema"},
             {"id": "07", "nombre": "Demo Rapida", "descripcion": "Demo interactiva para entrevista"},
+        ],
+        "features_avanzadas": [
+            "POST /api/webhook/ghl/lead — Webhook simulado de GoHighLevel",
+            "POST /api/scoring — Lead scoring con LLM (frio/tibio/caliente)",
+            "POST /api/rag/buscar — Busqueda semantica sobre catalogo",
+            "POST /api/clasificar — Sentimiento + intencion zero-shot",
+            "GET  /api/metricas — Dashboard de metricas",
+            "POST /api/01-chat-stream — Streaming SSE de tokens",
+            "POST /api/transcribir — Transcripcion audio (Whisper)",
+            "POST /api/ab-test — Comparacion A/B de prompts",
+            "POST /api/memoria/chat — Conversacion con memoria persistente",
         ],
     }
 
