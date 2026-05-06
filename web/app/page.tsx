@@ -16,6 +16,12 @@ import {
   ArrowRightIcon,
   SignalIcon,
   SignalSlashIcon,
+  ChartBarIcon,
+  ShieldCheckIcon,
+  AdjustmentsHorizontalIcon,
+  TagIcon,
+  Square2StackIcon,
+  MicrophoneIcon,
 } from "@heroicons/react/24/outline";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -37,9 +43,18 @@ function AnimatedNumber({ target, duration = 1.5 }: { target: number; duration?:
 }
 
 const MODULOS = [
+  // FEATURES IA AVANZADAS — primero porque son las clave para Presto
+  { id: "09", href: "/anti-abandono", titleKey: "mod_09_title", descKey: "mod_09_desc", tags: ["Engagement", "LLM-judge", "Salvavidas"], icon: ShieldCheckIcon, gradient: "from-rose-500 to-orange-500", live: true, hot: true },
+  { id: "10", href: "/scoring", titleKey: "mod_10_title", descKey: "mod_10_desc", tags: ["LLM-as-judge", "Scoring", "Calificacion"], icon: AdjustmentsHorizontalIcon, gradient: "from-amber-500 to-orange-500", live: true },
+  { id: "11", href: "/clasificar", titleKey: "mod_11_title", descKey: "mod_11_desc", tags: ["Zero-shot", "Sentimiento", "Intencion"], icon: TagIcon, gradient: "from-violet-500 to-purple-500", live: true },
+  { id: "08", href: "/dashboard", titleKey: "mod_08_title", descKey: "mod_08_desc", tags: ["Metricas", "Real-time", "Charts"], icon: ChartBarIcon, gradient: "from-fuchsia-500 to-purple-500", live: true },
+  { id: "13", href: "/streaming", titleKey: "mod_13_title", descKey: "mod_13_desc", tags: ["SSE", "Tokens/seg", "TTF"], icon: BoltIcon, gradient: "from-yellow-400 to-orange-500", live: true },
+  { id: "14", href: "/transcribir", titleKey: "mod_14_title", descKey: "mod_14_desc", tags: ["Whisper", "Audio", "Pipeline"], icon: MicrophoneIcon, gradient: "from-pink-500 to-rose-500", live: true },
+  { id: "12", href: "/ab-test", titleKey: "mod_12_title", descKey: "mod_12_desc", tags: ["A/B", "Comparador", "LLM-judge"], icon: Square2StackIcon, gradient: "from-cyan-500 to-blue-500", live: true },
+  { id: "05", href: "/caso-lead", titleKey: "mod_05_title", descKey: "mod_05_desc", tags: ["Multi-tenant", "CRM", "WhatsApp"], icon: UserGroupIcon, gradient: "from-purple-500 to-violet-400", live: true },
+  // DEMOS BASICAS
   { id: "01", href: "/api-basica", titleKey: "mod_01_title", descKey: "mod_01_desc", tags: ["REST API", "Groq", "Tokens"], icon: CommandLineIcon, gradient: "from-blue-500 to-cyan-400", live: true },
   { id: "02", href: "/agente", titleKey: "mod_02_title", descKey: "mod_02_desc", tags: ["LangChain", "LangGraph", "Tool Use"], icon: CpuChipIcon, gradient: "from-emerald-500 to-teal-400", live: true },
-  { id: "05", href: "/caso-lead", titleKey: "mod_05_title", descKey: "mod_05_desc", tags: ["Multi-tenant", "CRM", "WhatsApp"], icon: UserGroupIcon, gradient: "from-purple-500 to-violet-400", live: true },
   { id: "06", href: "/arquitectura", titleKey: "mod_06_title", descKey: "mod_06_desc", tags: ["Diagramas", "Stack"], icon: CubeTransparentIcon, gradient: "from-orange-500 to-amber-400", live: false },
   { id: "04", href: "/portafolio", titleKey: "mod_04_title", descKey: "mod_04_desc", tags: ["Sudial AI", "Kumbre", "SaaS"], icon: BriefcaseIcon, gradient: "from-cyan-500 to-blue-400", live: false },
   { id: "03", href: "/automatizacion", titleKey: "mod_03_title", descKey: "mod_03_desc", tags: ["Make", "Zapier", "No-code"], icon: BoltIcon, gradient: "from-yellow-500 to-orange-400", live: false },
@@ -171,6 +186,11 @@ export default function Home() {
                       <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         Live
+                      </span>
+                    )}
+                    {"hot" in mod && mod.hot && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold uppercase">
+                        🔥 Hot
                       </span>
                     )}
                   </div>
